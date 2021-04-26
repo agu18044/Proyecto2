@@ -113,10 +113,13 @@ void setup() {
   Serial.println("Inicio");
   LCD_Init();
   LCD_Clear(0x00);
-  
-  FillRect(0, 0, 319, 206, 0x421b);
-  String text1 = "Super Mario World!";
-  LCD_Print(text1, 20, 100, 2, 0xffff, 0x421b);
+  pinMode(PC_7, INPUT);
+  pinMode(PA_4, INPUT);
+  pinMode(PD_7, INPUT);
+  pinMode(PD_6, INPUT);
+  pinMode(PF_4, INPUT_PULLUP);
+  pinMode(PF_0, INPUT_PULLUP);
+ 
 //LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int columns, int index, char flip, char offset);
     
   //LCD_Bitmap(unsigned int x, unsigned int y, unsigned int width, unsigned int height, unsigned char bitmap[]);
