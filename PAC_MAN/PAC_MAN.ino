@@ -119,6 +119,8 @@ void setup() {
   pinMode(PD_6, INPUT);
   pinMode(PF_4, INPUT_PULLUP);
   pinMode(PF_0, INPUT_PULLUP);
+ //Wire.begin();
+
  
 //LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int columns, int index, char flip, char offset);
     
@@ -139,53 +141,26 @@ void setup() {
 // Loop Infinito
 //***************************************************************************************************************************************
 void loop() {
-  for(int x = 0; x <320-32; x++){
-    delay(15);
-    int anim2 = (x/35)%2;
-    
-    LCD_Sprite(x,100,16,24,planta,2,anim2,0,1);
-    V_line( x -1, 100, 24, 0x421b);
-    
-    //LCD_Bitmap(x, 100, 32, 32, prueba);
-    
-    int anim = (x/11)%8;
-    
-
-    int anim3 = (x/11)%4;
-    
-    LCD_Sprite(x, 20, 16, 32, mario,8, anim,1, 0);
-    V_line( x -1, 20, 32, 0x421b);
- 
-    //LCD_Sprite(x,100,32,32,bowser,4,anim3,0,1);
-    //V_line( x -1, 100, 32, 0x421b);
- 
- 
-    LCD_Sprite(x, 140, 16, 16, enemy,2, anim2,1, 0);
-    V_line( x -1, 140, 16, 0x421b);
-  
-    LCD_Sprite(x, 175, 16, 32, luigi,8, anim,1, 0);
-    V_line( x -1, 175, 32, 0x421b);
-  }
-  for(int x = 320-32; x >0; x--){
-    delay(5);
-    int anim = (x/11)%8;
-    int anim2 = (x/11)%2;
-    
-    LCD_Sprite(x,100,16,24,planta,2,anim2,0,0);
-    V_line( x + 16, 100, 24, 0x421b);
-    
-    //LCD_Bitmap(x, 100, 32, 32, prueba);
-    
-    //LCD_Sprite(x, 140, 16, 16, enemy,2, anim2,0, 0);
-    //V_line( x + 16, 140, 16, 0x421b);
-    
-    //LCD_Sprite(x, 175, 16, 32, luigi,8, anim,0, 0);
-    //V_line( x + 16, 175, 32, 0x421b);
-
-    //LCD_Sprite(x, 20, 16, 32, mario,8, anim,0, 0);
-    //V_line( x + 16, 20, 32, 0x421b);
-  } 
-
+  iniciojuego:
+    fantasma A(15,14,1);
+    fantasma B(17,14,2);
+    fantasma C(19,14,3);
+    fantasma D(21,14,4);
+    inicio();
+  while(selec==0){
+    if (digitalRead(PC_7) == LOW) {seldir=2;jugadores=2;}
+    if (digitalRead(PD_7) == LOW) {seldir=1;jugadores=1;}
+    if (digitalRead(PF_4) == LOW) {selec=1;goto jugador1;}
+    switch(seldir){
+      case 1:
+        LCD_Sprite(64,128, 16, 16, jugadorD, 3,0, 0, 0);
+        for(int a=64;a<80;a++){V_line(a, 160, 15, 0x0);}
+        break;
+      case 2:
+        LCD_Sprite(64,160, 16, 16, jugadorD, 3,0, 0, 0);
+        for(int a=64;a<80;a++){V_line(a, 128, 15, 0x0);}
+        break;
+        } 
 }
 //***************************************************************************************************************************************
 // Función para inicializar LCD
