@@ -23,6 +23,10 @@
 #include "bitmaps.h"
 #include "font.h"
 #include "lcd_registers.h"
+#include <SPI.h>
+#include <SD.h>
+#include <Wire.h>
+#include <EEPROM.h>
 
 #define LCD_RST PD_0
 #define LCD_CS PD_1
@@ -30,6 +34,7 @@
 #define LCD_WR PD_3
 #define LCD_RD PE_1
 int DPINS[] = {PB_0, PB_1, PB_2, PB_3, PB_4, PB_5, PB_6, PB_7};  
+
 //***************************************************************************************************************************************
 // Functions Prototypes
 //***************************************************************************************************************************************
@@ -45,7 +50,7 @@ void FillRect(unsigned int x, unsigned int y, unsigned int w, unsigned int h, un
 void LCD_Print(String text, int x, int y, int fontSize, int color, int background);
 
 void LCD_Bitmap(unsigned int x, unsigned int y, unsigned int width, unsigned int height, unsigned char bitmap[]);
-void LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int columns, int index, char flip, char offset);
+void LCD_Sprite(int x, int y, int width, int height, unsigned char const bitmap[],int columns, int index, char flip, char offset);
 
 class fantasma{
     int fdir;
@@ -119,21 +124,20 @@ void setup() {
   pinMode(PD_6, INPUT);
   pinMode(PF_4, INPUT_PULLUP);
   pinMode(PF_0, INPUT_PULLUP);
- //Wire.begin();
+  Wire.begin();
+ //LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int columns, int index, char flip, char offset);
+    
 
- 
-//LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int columns, int index, char flip, char offset);
- 
 }
 //***************************************************************************************************************************************
 // Loop Infinito
 //***************************************************************************************************************************************
 void loop() {
-  iniciojuego:
+iniciojuego:
     fantasma A(15,14,1);
     fantasma B(17,14,2);
     fantasma C(19,14,3);
-
+    //fantasma D(21,14,4);
     inicio();
   while(selec==0){
     if (digitalRead(PC_7) == LOW) {seldir=2;jugadores=2;}
@@ -148,9 +152,9 @@ void loop() {
         LCD_Sprite(64,160, 16, 16, jugadorD, 3,0, 0, 0);
         for(int a=64;a<80;a++){V_line(a, 128, 15, 0x0);}
         break;
-        } 
-}
-
+        }  
+      }
+  //creacion del mapa 
 jugador1: 
   LCD_Clear(0);
   nota=1;
@@ -335,10 +339,7 @@ jugador1:
           tiempo=50;
           modo=1;}
   }}
-
-/*
-        JUGADOR 2                 */
-
+/////////////////////////////////////////////////////////jugador 2
 jugador2:
   vidas=3;
   turno=2;
@@ -457,7 +458,8 @@ jugador2:
            }
            
            break;
-     case 4:
+     
+    case 4:
       if(mapa2[y-1][x] == '@') {
           y--;
          //if(y>29){y=28;}
@@ -471,8 +473,7 @@ jugador2:
            monedas[y][x]='0';
            }
            
-           break; 
-           
+           break;        
     }
     //((x*8==(ax*8) and y*8<=(by*8)+16 ) or (y*8==(by*8) and x*8==(ax*8)+16 )or(x*8==ax*8 and (y*8)-16== by*8 )or ( y*8==by*8 and x*8==(ax*8)+16))
      
@@ -500,6 +501,8 @@ jugador2:
           tiempo=50;
           modo=1;}
   }}
+
+  
 
 }
 //***************************************************************************************************************************************
@@ -793,7 +796,7 @@ void LCD_Bitmap(unsigned int x, unsigned int y, unsigned int width, unsigned int
 //***************************************************************************************************************************************
 // Función para dibujar una imagen sprite - los parámetros columns = número de imagenes en el sprite, index = cual desplegar, flip = darle vuelta
 //***************************************************************************************************************************************
-void LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int columns, int index, char flip, char offset){
+void LCD_Sprite(int x, int y, int width, int height, unsigned char const bitmap[],int columns, int index, char flip, char offset){
   LCD_CMD(0x02c); // write_memory_start
   digitalWrite(LCD_RS, HIGH);
   digitalWrite(LCD_CS, LOW); 
@@ -827,4 +830,150 @@ void LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int 
     
     }
   digitalWrite(LCD_CS, HIGH);
+}
+
+void pintar_mapa()
+{
+     for(int i = 0 ; i <40 ; i++){
+         for(int j = 0 ; j < 30 ; j++){
+               if(mapa2[j][i] == '(') {FillRect(i*8,j*8,8,8, 0x008D);}
+               else if(mapa2[j][i] == '@') {LCD_Sprite((i*8)+4, (j*8)+4, 8, 8, M_pe, 1, 0, 0, 0); monedas[j][i]='1';Nmonedas++;}
+               
+         }
+     }
+     LCD_Sprite((1*8)+4, (3*8)+4, 8, 8, M_gra, 1, 0, 0, 0);
+     LCD_Sprite((1*8)+4, (25*8)+4, 8, 8, M_gra, 1, 0, 0, 0);
+     LCD_Sprite((37*8)+4, (3*8)+4, 8, 8, M_gra, 1, 0, 0, 0);
+     LCD_Sprite((37*8)+4, (25*8)+4, 8, 8, M_gra, 1, 0, 0, 0);
+}
+
+void inicio(){
+  LCD_Clear(0);
+  LCD_Print("PAC-MAN", 80,32,2,0xFFE0,0x0);
+  LCD_Print("1 JUGADOR", 80,128,1,0xFFFF,0x0);
+  LCD_Print("2 JUGADOR", 80,160,1,0xFFFF,0x0);
+  }
+
+  fantasma::fantasma(int x , int y, int sprite1){
+fx = x;
+fy = y;
+sprite=sprite1;
+sprite2=sprite1;
+fdir = random(1,5);
+}
+
+void fantasma::dibujar_fantasma(){
+int anim = (fy/4)%2;
+switch(sprite){
+  case 1:   LCD_Sprite(fx*8, fy*8, 16, 16, FRAR, 2, anim, 0, 0); break;
+  case 2:   LCD_Sprite(fx*8, fy*8, 16, 16, FYAR, 2, anim, 0, 0); break;
+  case 3:   LCD_Sprite(fx*8, fy*8, 16, 16, FBAR, 2, anim, 0, 0); break;
+  case 4:   LCD_Sprite(fx*8, fy*8, 16, 16, FPAR, 2, anim, 0, 0); break;
+  case 5:   LCD_Sprite(fx*8, fy*8, 16, 16, FRAB, 2, anim, 0, 0); break;
+  case 6:   LCD_Sprite(fx*8, fy*8, 16, 16, FYAB, 2, anim, 0, 0); break;
+  case 7:   LCD_Sprite(fx*8, fy*8, 16, 16, FBAB, 2, anim, 0, 0); break;
+  case 8:   LCD_Sprite(fx*8, fy*8, 16, 16, FPAB, 2, anim, 0, 0); break;
+  case 9:   LCD_Sprite(fx*8, fy*8, 16, 16, FRD, 2, anim, 0, 0); break;
+  case 10:  LCD_Sprite(fx*8, fy*8, 16, 16, FYD, 2, anim, 0, 0); break;
+  case 11:  LCD_Sprite(fx*8, fy*8, 16, 16, FBD, 2, anim, 0, 0); break;
+  case 12:  LCD_Sprite(fx*8, fy*8, 16, 16, FYD, 2, anim, 0, 0); break;
+  case 13:  LCD_Sprite(fx*8, fy*8, 16, 16, FPD, 2, anim, 0, 0); break;
+  case 14:  LCD_Sprite(fx*8, fy*8, 16, 16, FRI, 2, anim, 0, 0); break;
+  case 15:  LCD_Sprite(fx*8, fy*8, 16, 16, FYI, 2, anim, 0, 0); break;
+  case 16:  LCD_Sprite(fx*8, fy*8, 16, 16, FBI, 2, anim, 0, 0); break;
+  case 17:  LCD_Sprite(fx*8, fy*8, 16, 16, FPI, 2, anim, 0, 0); break;
+  case 18:  LCD_Sprite(fx*8, fy*8, 16, 16, FC, 2, anim, 0, 0); break;
+  case 19:  LCD_Sprite(fx*8, fy*8, 16, 16, FCT, 2, anim, 0, 0); break;
+  case 20:  LCD_Sprite(fx*8, fy*8, 16, 16, F_muerte, 2, anim, 0, 0); break;
+  }
+}
+
+void fantasma::borrar_fantasma(){
+  switch(fdir){
+    case 1: if(mapa2[fy-1][fx] == '@' or mapa2[fy-1][fx] == 'H'){
+            for(int a=((fy+3)*8)-1;a>(fy*8)+15;a--){H_line(fx*8,a , 15, 0x0);}} break;
+    case 2:  if(mapa2[fy][fx+1] == '@' or mapa2[fy][fx+1] == 'H'){
+              for(int a=(fx*8)-8;a<(fx*8)+1;a++){
+              if(a>8){V_line(a, fy*8, 15, 0x0);}}}
+                break;
+    case 3: if(mapa2[fy][fx-1] == '@' or mapa2[fy][fx-1] == 'H'){
+            for(int a=(fx*8)+24;a>(fx*8)+15;a--){
+            if(a<311){V_line(a, fy*8, 15, 0x0);}}}
+          break;
+    case 4: if(mapa2[fy+1][fx] == '@' or mapa2[fy+1][fx] == 'H'){
+              for(int a=((fy-1)*8);a<(fy*8);a++){
+            H_line(fx*8,a , 15, 0x0);
+            }
+               }
+          break;
+  }
+}
+
+void fantasma::choque_pacman(){
+if((fx*8>=x*8 and fx*8<x*8+16 and fy*8>y*8 and fy*8 <= y*8+16) or (x*8<=fx*8+16 and x*8>=fx*8 and fy*8==y*8) or (x*8==fx*8 and y*8==fy*8))  {
+         
+      if (modo==1){
+        nota=3;dir=1;
+      Wire.beginTransmission(4); // transmit to device #4
+      Wire.write(nota);              // sends one byte  
+      Wire.endTransmission();    // stop transmitting
+      Wire.beginTransmission(4); // transmit to device #4
+      Wire.write(0);              // sends one byte  
+      Wire.endTransmission();    // stop transmitting
+      for(int anim=2;anim<14;anim++){
+      LCD_Sprite((x*8), y*8, 16, 16, muerte, 14, anim, 0, 0);
+      delay(200);
+      }
+      for(int a=x*8;a<(x*8)+16;a++){
+            V_line(a, y*8, 15, 0x0);}
+      for(int a=fx*8;a<(fx*8)+16;a++){
+            V_line(a, fy*8, 15, 0x0);} 
+        vidas--;x=1;y=27;}
+      if(modo==2){
+        nota=2;
+        Wire.beginTransmission(4); // transmit to device #4
+        Wire.write(nota);              // sends one byte  
+        Wire.endTransmission();    // stop transmitting
+        Wire.beginTransmission(4); // transmit to device #4
+        Wire.write(0);              // sends one byte  
+        Wire.endTransmission();    // stop transmitting
+        for(int anim=2;anim<4;anim++){
+        LCD_Sprite((fx*8), fy*8, 16, 16, F_muerte, 4, anim, 0, 0);
+        delay(200);
+      }
+      for(int a=x*8;a<(x*8)+16;a++){
+            V_line(a, y*8, 15, 0x0);}
+      for(int a=fx*8;a<(fx*8)+16;a++){
+            V_line(a, fy*8, 15, 0x0);} 
+        puntaje=puntaje+200;
+        fy=14;fx=15;}
+        
+        
+        }
+      ///vdas
+      }
+
+
+void fantasma::mover_fantasma(){
+  //borrar_fantasma();
+  choque_pacman();
+  int bolx=fx,boly=fy;
+  // fdir 1 arriba   f2 derecha    3 izquierda   4 abajo
+  if(fx==19 and fy==14){fdir=1;}
+  if(fdir==1){if(mapa2[fy-1][fx] == '@' or mapa2[fy-1][fx] == 'H'){fy--;for(int a=((fy+3)*8)-1;a>(fy*8)+15;a--){H_line(fx*8,a , 15, 0x0);}}if(monedas[boly][bolx]=='1'){ LCD_Sprite((bolx*8)+4, (boly*8)+4, 8, 8, M_pe, 1, 0, 0, 0);}} else {fdir=random(1,5);}
+  if(fdir==2){if(mapa2[fy][fx+1] == '@' or mapa2[fy][fx+1] == 'H'){fx++;for(int a=(fx*8)-8;a<(fx*8)+1;a++){
+              if(a>8){V_line(a, fy*8, 15, 0x0);}}}if(monedas[boly][bolx]=='1'){ LCD_Sprite((bolx*8)+4, (boly*8)+4, 8, 8, M_pe, 1, 0, 0, 0);}} else {fdir=random(1,5);}
+  if(fdir==3){if(mapa2[fy][fx-1] == '@' or mapa2[fy][fx-1] == 'H'){fx--;for(int a=(fx*8)+24;a>(fx*8)+15;a--){
+            if(a<311){V_line(a, fy*8, 15, 0x0);}}}if(monedas[boly][bolx]=='1'){ LCD_Sprite((bolx*8)+8, (boly*8)+4, 8, 8, M_pe, 1, 0, 0, 0);}} else {fdir=random(1,5);}
+  if(fdir==4){if(mapa2[fy+1][fx] == '@' or mapa2[fy+1][fx] == 'H'){fy++;for(int a=((fy-1)*8);a<(fy*8);a++){
+            H_line(fx*8,a , 15, 0x0);
+            }}if(monedas[boly][bolx]=='1'){ LCD_Sprite((bolx*8)+4, (boly*8)+4, 8, 8, M_pe, 1, 0, 0, 0);}} else {fdir=random(1,5);}
+   if(modo==1){sprite = sprite2;}
+   if(modo==2){sprite=18;}
+  dibujar_fantasma();
+ 
+    
+  
+  delay(50);
+   //borrar_fantasma();
 }
