@@ -123,19 +123,7 @@ void setup() {
 
  
 //LCD_Sprite(int x, int y, int width, int height, unsigned char bitmap[],int columns, int index, char flip, char offset);
-    
-  //LCD_Bitmap(unsigned int x, unsigned int y, unsigned int width, unsigned int height, unsigned char bitmap[]);
-  
-  
-  for(int x = 0; x <319; x++){
-    LCD_Bitmap(x, 52, 16, 16, tile2);
-    LCD_Bitmap(x, 68, 16, 16, tile);
-    
-    LCD_Bitmap(x, 207, 16, 16, tile);
-    LCD_Bitmap(x, 223, 16, 16, tile);
-    x += 15;
- }
-  
+ 
 }
 //***************************************************************************************************************************************
 // Loop Infinito
@@ -161,6 +149,358 @@ void loop() {
         for(int a=64;a<80;a++){V_line(a, 128, 15, 0x0);}
         break;
         } 
+}
+
+jugador1: 
+  LCD_Clear(0);
+  nota=1;
+  Wire.beginTransmission(4); // transmit to device #4
+  Wire.write(nota);              // sends one byte  
+  Wire.endTransmission();    // stop transmitting
+  delay(1000);
+  nota=0;
+  Wire.beginTransmission(4); // transmit to device #4
+  Wire.write(nota);              // sends one byte  
+  Wire.endTransmission();    // stop transmitting
+  pintar_mapa();
+  LCD_Sprite(x*8, y*8, 16, 16, jugadorD, 3, 0, 0, 0);
+  //LCD_Sprite(ax*8, by*8, 16, 16, FRAR, 2, 0, 0, 0);
+  //jugador 1
+  while(selec==1){
+  //dir=1 derecha, dir=2 izquierda, dir=3 abajo, dir=4 arriba
+  if (digitalRead(PD_6) == LOW) {dir=1;}
+  if (digitalRead(PA_4) == LOW) {dir=2;}
+  if (digitalRead(PC_7) == LOW) {dir=3;}
+  if (digitalRead(PD_7) == LOW) {dir=4;}
+  if(vidas==0){
+        LCD_Clear(0);
+        if(seldir==1 and jugadores==1){
+        LCD_Print("Game Over", 80,32,2,0xF800,0x0);
+        LCD_Print("Score :", 80,64,1,0xFFFF,0x0);
+        LCD_Print(String(puntaje), 130,64,1,0xFFFF,0x0);
+        while(1){
+          if (digitalRead(PF_0) == LOW) {selec=0;puntaje=0;vidas=3;goto iniciojuego;}
+          }
+        //LCD_Print(String(Nmonedas), 130,100,1,0xFFFF,0x0);
+                }
+        if(seldir==2 and jugadores==2 and turno==1){
+        LCD_Print("Game Over", 80,32,2,0xF800,0x0);
+        LCD_Print("Score J1:", 80,64,1,0xFFFF,0x0);
+        LCD_Print(String(puntaje), 130,100,1,0xFFFF,0x0);
+        delay(5000);
+        goto jugador2;
+        }
+         if(seldir==2 and jugadores ==2 and turno==2){
+        LCD_Print("Game Over", 80,32,2,0xF800,0x0);
+        LCD_Print("Score J2:", 80,64,1,0xFFFF,0x0);
+        LCD_Print(String(puntaje2), 130,100,1,0xFFFF,0x0);
+        delay(5000);
+        //LCD_Print(String(Nmonedas), 130,100,1,0xFFFF,0x0);
+               
+       while(1){
+        //LCD_Print("Game Over", 80,32,2,0xF800,0x0);
+        if(puntaje>puntaje2){LCD_Print("Jugador 1 gana", 80,64,1,0xFFFF,0x0);}
+        if(puntaje2>puntaje){LCD_Print("Jugador 2 gana", 80,64,1,0xFFFF,0x0);}
+        if(puntaje=puntaje2){LCD_Print("Empate", 80,64,1,0xFFFF,0x0);}
+        if (digitalRead(PF_0) == LOW) {selec=0;puntaje=0;puntaje2=0;vidas=3;goto iniciojuego;}
+        } }
+                }
+  switch(dir){
+    case 1:
+      if(mapa2[y][x+1] == '@') {
+        if(mapa2[y][x+2] == '_'){
+          x=0;
+          for(int a=287;a<320;a++){
+            V_line(a, y*8, 15, 0x0);
+            }
+        }
+        x++;
+        if(x>40){x=40;}
+        delay(tiempo);
+        int comiendo = (x/4)%2;
+        LCD_Sprite((x*8), y*8, 16, 16, jugadorD, 3, comiendo, 0, 0);
+        for(int a=(x*8)-8;a<(x*8)+1;a++){
+          if(a>8){
+          V_line(a, y*8, 15, 0x0);
+          }
+          }
+      if(monedas[y][x]=='1'){
+        if((x==1 and y==3) or (x==1 and y==25) or (x==37 and y==3) or (x==37 and y==25)){tiempo=1;modo=2;previousMillis = currentMillis;}  
+        puntaje=puntaje+10;Nmonedas--;}
+      monedas[y][x]='0';
+      
+      }
+      
+     break;
+    case 2:
+      if(mapa2[y][x-1] == '@') {
+        if(mapa2[y][x-2] == '_'){x=38;
+          for(int a=0;a<32;a++){
+            V_line(a, y*8, 15, 0x0);
+            }
+        }
+        x--;
+        if(x<1){x=0;}
+        delay(tiempo);
+        int comiendo = (x/8)%2;
+        LCD_Sprite((x*8), y*8, 16, 16, jugadorI, 3, comiendo, 0, 0);
+        for(int a=(x*8)+24;a>(x*8)+15;a--){
+          if(a<311 and mapa2[y][x] == '@'){
+          V_line(a, y*8, 15, 0x0);}
+          }  
+        if(monedas[y][x]=='1'){puntaje=puntaje+10;Nmonedas--;if((x==1 and y==3) or (x==1 and y==25) or (x==37 and y==3) or (x==37 and y==25)){tiempo=1;modo=2;previousMillis = currentMillis;}  }
+        monedas[y][x]='0';
+          }
+          break;
+    case 3:
+       if(mapa2[y+1][x] == '@') {
+          y++;
+          if(y>29){y=28;}
+          delay(tiempo);
+          int comiendo = (y/4)%2;
+          LCD_Sprite((x*8), y*8, 16, 16, jugadorAb, 3, comiendo, 0, 0);
+          for(int a=((y-1)*8);a<(y*8);a++){
+            H_line(x*8, a, 15, 0x0);
+            }
+           if(monedas[y][x]=='1'){puntaje=puntaje+10;Nmonedas--;if((x==1 and y==3) or (x==1 and y==25) or (x==37 and y==3) or (x==37 and y==25)){tiempo=1;modo=2;previousMillis = currentMillis;}  }
+           monedas[y][x]='0';
+           }
+           
+           break;
+     
+    case 4:
+      if(mapa2[y-1][x] == '@') {
+          y--;
+         //if(y>29){y=28;}
+          delay(tiempo);
+          int comiendo = (y/4)%2;
+          LCD_Sprite((x*8), y*8, 16, 16, jugadorAr, 3, comiendo, 0, 0);
+          for(int a=((y+3)*8)-1;a>(y*8)+15;a--){
+            H_line(x*8, a, 15, 0x0);
+            }
+           if(monedas[y][x]=='1'){puntaje=puntaje+10;Nmonedas--;if((x==1 and y==3) or (x==1 and y==25) or (x==37 and y==3) or (x==37 and y==25)){tiempo=1;modo=2;previousMillis = currentMillis;}  }
+           monedas[y][x]='0';
+           }
+           
+           break;        
+    }
+    //((x*8==(ax*8) and y*8<=(by*8)+16 ) or (y*8==(by*8) and x*8==(ax*8)+16 )or(x*8==ax*8 and (y*8)-16== by*8 )or ( y*8==by*8 and x*8==(ax*8)+16))
+     
+    
+    if(Nmonedas==0){
+      LCD_Clear(0);
+      if(seldir==1 and jugadores ==1){
+        LCD_Print("Has ganado", 80,32,2,0xF800,0x0);
+        LCD_Print("Score:", 80,64,1,0xFFFF,0x0);
+        LCD_Print(String(puntaje), 130,64,1,0xFFFF,0x0);
+        //LCD_Print(String(Nmonedas), 130,100,1,0xFFFF,0x0);
+        while(1){
+          if (digitalRead(PF_0) == LOW) {selec=0;puntaje=0;vidas=3;goto iniciojuego;}
+          }}    
+        if(seldir==2 and jugadores==2 and turno==1){
+        LCD_Print("Nivel terminado", 80,32,2,0xF800,0x0);
+        LCD_Print("Score J1:", 80,64,1,0xFFFF,0x0);
+        LCD_Print(String(puntaje), 130,100,1,0xFFFF,0x0);
+        delay(5000);
+        goto jugador2;
+        }
+         if(seldir==2 and jugadores ==2 and turno==2){
+        LCD_Print("Nivel terminado", 80,32,2,0xF800,0x0);
+        LCD_Print("Score J2:", 80,64,1,0xFFFF,0x0);
+        LCD_Print(String(puntaje2), 130,100,1,0xFFFF,0x0);
+        delay(5000);
+        LCD_Clear(0);
+        
+        //LCD_Print(String(Nmonedas), 130,100,1,0xFFFF,0x0);
+               
+       while(1){
+        //LCD_Print("Game Over", 80,32,2,0xF800,0x0);
+        
+        if(puntaje>puntaje2){LCD_Print("Jugador 1 gana", 80,64,1,0xFFFF,0x0);}
+        if(puntaje2>puntaje){LCD_Print("Jugador 2 gana", 80,64,1,0xFFFF,0x0);}
+        else if(puntaje=puntaje2){LCD_Print("Empate", 80,64,1,0xFFFF,0x0);}
+        if (digitalRead(PF_0) == LOW) {selec=0;puntaje=0;puntaje2=0;vidas=3;goto iniciojuego;}
+        } }
+      }
+      A.mover_fantasma();
+      B.mover_fantasma();
+      C.mover_fantasma();
+      //D.mover_fantasma();
+      //
+      currentMillis = millis();
+ 
+      if(currentMillis - previousMillis > interval) {
+        previousMillis = currentMillis;
+          if (modo == 2){
+          tiempo=50;
+          modo=1;}
+  }}
+
+/*
+        JUGADOR 2                 */
+
+jugador2:
+  vidas=3;
+  turno=2;
+  LCD_Clear(0);
+  nota=1;
+  Nmonedas=0;
+  Wire.beginTransmission(4); // transmit to device #4
+  Wire.write(nota);              // sends one byte  
+  Wire.endTransmission();    // stop transmitting
+  delay(1000);
+  nota=0;
+  Wire.beginTransmission(4); // transmit to device #4
+  Wire.write(nota);              // sends one byte  
+  Wire.endTransmission();    // stop transmitting
+  pintar_mapa();
+  LCD_Sprite(x*8, y*8, 16, 16, jugadorD, 3, 0, 0, 0);
+  while(selec==1){
+  //dir=1 derecha, dir=2 izquierda, dir=3 abajo, dir=4 arriba
+  if (digitalRead(PD_6) == LOW) {dir=1;}
+  if (digitalRead(PA_4) == LOW) {dir=2;}
+  if (digitalRead(PC_7) == LOW) {dir=3;}
+  if (digitalRead(PD_7) == LOW) {dir=4;}
+  if(vidas==0){
+        LCD_Clear(0);
+        if(seldir==1 and jugadores==1){
+        LCD_Print("Game Over", 80,32,2,0xF800,0x0);
+        LCD_Print("Score :", 80,64,1,0xFFFF,0x0);
+        LCD_Print(String(puntaje), 130,64,1,0xFFFF,0x0);
+        while(1){
+          if (digitalRead(PF_0) == LOW) {selec=0;puntaje=0;vidas=3;goto iniciojuego;}
+          }
+        //LCD_Print(String(Nmonedas), 130,100,1,0xFFFF,0x0);
+                }
+        if(seldir==2 and jugadores==2 and turno==1){
+        LCD_Print("Game Over", 80,32,2,0xF800,0x0);
+        LCD_Print("Score J1:", 80,64,1,0xFFFF,0x0);
+        LCD_Print(String(puntaje), 130,100,1,0xFFFF,0x0);
+        delay(5000);
+        goto jugador2;
+        }
+         if(seldir==2 and jugadores ==2 and turno==2){
+        LCD_Print("Game Over", 80,32,2,0xF800,0x0);
+        LCD_Print("Score J2:", 80,64,1,0xFFFF,0x0);
+        LCD_Print(String(puntaje2), 130,100,1,0xFFFF,0x0);
+        delay(5000);
+        LCD_Clear(0);
+        //LCD_Print(String(Nmonedas), 130,100,1,0xFFFF,0x0);
+       while(1){
+        //LCD_Print("Game Over", 80,32,2,0xF800,0x0);
+        if(puntaje>puntaje2){LCD_Print("Jugador 1 gana", 80,64,1,0xFFFF,0x0);}
+        if(puntaje2>puntaje){LCD_Print("Jugador 2 gana", 80,64,1,0xFFFF,0x0);}
+        else if(puntaje=puntaje2){LCD_Print("Empate", 80,64,1,0xFFFF,0x0);}
+        if (digitalRead(PF_0) == LOW) {selec=0;puntaje=0;puntaje2=0;vidas=3;goto iniciojuego;}
+        } }
+                }
+
+  switch(dir){
+    case 1:
+      if(mapa2[y][x+1] == '@') {
+        if(mapa2[y][x+2] == '_'){
+          x=0;
+          for(int a=287;a<320;a++){
+            V_line(a, y*8, 15, 0x0);
+            }
+        }
+        x++;
+        if(x>40){x=40;}
+        delay(tiempo);
+        int comiendo = (x/4)%2;
+        LCD_Sprite((x*8), y*8, 16, 16, jugadorD, 3, comiendo, 0, 0);
+        for(int a=(x*8)-8;a<(x*8)+1;a++){
+          if(a>8){
+          V_line(a, y*8, 15, 0x0);
+          }
+          }
+      if(monedas[y][x]=='1'){
+        if((x==1 and y==3) or (x==1 and y==25) or (x==37 and y==3) or (x==37 and y==25)){tiempo=1;modo=2;previousMillis = currentMillis;}  
+        puntaje2=puntaje2+10;Nmonedas--;}
+      monedas[y][x]='0';
+      
+      }
+      
+     break;
+    case 2:
+      if(mapa2[y][x-1] == '@') {
+        if(mapa2[y][x-2] == '_'){x=38;
+          for(int a=0;a<32;a++){
+            V_line(a, y*8, 15, 0x0);
+            }
+        }
+        x--;
+        if(x<1){x=0;}
+        delay(tiempo);
+        int comiendo = (x/8)%2;
+        LCD_Sprite((x*8), y*8, 16, 16, jugadorI, 3, comiendo, 0, 0);
+        for(int a=(x*8)+24;a>(x*8)+15;a--){
+          if(a<311 and mapa2[y][x] == '@'){
+          V_line(a, y*8, 15, 0x0);}
+          }  
+        if(monedas[y][x]=='1'){puntaje2=puntaje2+10;Nmonedas--;if((x==1 and y==3) or (x==1 and y==25) or (x==37 and y==3) or (x==37 and y==25)){tiempo=1;modo=2;previousMillis = currentMillis;}  }
+        monedas[y][x]='0';
+          }
+          break;
+    case 3:
+       if(mapa2[y+1][x] == '@') {
+          y++;
+          if(y>29){y=28;}
+          delay(tiempo);
+          int comiendo = (y/4)%2;
+          LCD_Sprite((x*8), y*8, 16, 16, jugadorAb, 3, comiendo, 0, 0);
+          for(int a=((y-1)*8);a<(y*8);a++){
+            H_line(x*8, a, 15, 0x0);
+            }
+           if(monedas[y][x]=='1'){puntaje2=puntaje2+10;Nmonedas--;if((x==1 and y==3) or (x==1 and y==25) or (x==37 and y==3) or (x==37 and y==25)){tiempo=1;modo=2;previousMillis = currentMillis;}  }
+           monedas[y][x]='0';
+           }
+           
+           break;
+     case 4:
+      if(mapa2[y-1][x] == '@') {
+          y--;
+         //if(y>29){y=28;}
+          delay(tiempo);
+          int comiendo = (y/4)%2;
+          LCD_Sprite((x*8), y*8, 16, 16, jugadorAr, 3, comiendo, 0, 0);
+          for(int a=((y+3)*8)-1;a>(y*8)+15;a--){
+            H_line(x*8, a, 15, 0x0);
+            }
+           if(monedas[y][x]=='1'){puntaje2=puntaje2+10;Nmonedas--;if((x==1 and y==3) or (x==1 and y==25) or (x==37 and y==3) or (x==37 and y==25)){tiempo=1;modo=2;previousMillis = currentMillis;}  }
+           monedas[y][x]='0';
+           }
+           
+           break; 
+           
+    }
+    //((x*8==(ax*8) and y*8<=(by*8)+16 ) or (y*8==(by*8) and x*8==(ax*8)+16 )or(x*8==ax*8 and (y*8)-16== by*8 )or ( y*8==by*8 and x*8==(ax*8)+16))
+     
+    
+    if(Nmonedas==0){
+      LCD_Clear(0);
+        LCD_Print("Has ganado", 80,32,2,0xF800,0x0);
+        LCD_Print("Score:", 80,64,1,0xFFFF,0x0);
+        LCD_Print(String(puntaje2), 130,64,1,0xFFFF,0x0);
+        LCD_Print(String(Nmonedas), 130,100,1,0xFFFF,0x0);
+        while(1){
+          if (digitalRead(PF_0) == LOW) {goto iniciojuego;selec=0;puntaje2=0;vidas=3;}
+          }
+      }
+      A.mover_fantasma();
+      B.mover_fantasma();
+      C.mover_fantasma();
+      //D.mover_fantasma();
+      //
+      currentMillis = millis();
+ 
+      if(currentMillis - previousMillis > interval) {
+        previousMillis = currentMillis;
+          if (modo == 2){
+          tiempo=50;
+          modo=1;}
+  }}
+
 }
 //***************************************************************************************************************************************
 // Función para inicializar LCD
