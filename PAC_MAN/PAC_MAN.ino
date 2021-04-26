@@ -145,7 +145,7 @@ void loop() {
     fantasma A(15,14,1);
     fantasma B(17,14,2);
     fantasma C(19,14,3);
-    fantasma D(21,14,4);
+
     inicio();
   while(selec==0){
     if (digitalRead(PC_7) == LOW) {seldir=2;jugadores=2;}
