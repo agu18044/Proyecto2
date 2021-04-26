@@ -4,12 +4,27 @@
 #include <Wire.h>
 #define pinSD 10
 
-void setup() {
-  // put your setup code here, to run once:
+TMRpcm tmrpcm;   //Se crea un objeto de la librería TMRpcm
+int x=0;
+void setup(){
+  Wire.begin(4);                // join i2c bus with address #8
+  Wire.onReceive(receiveEvent); // register event
+  Serial.begin(9600); 
+  tmrpcm.speakerPin = 9; //Se define el pin en el que está conectada la bocina
+  if (!SD.begin(pinSD)) {  // see if the card is present and can be initialized:
+    return;   //No hacer nada si no se pudo leer la tarjeta
+  }
+}
 
+void receiveEvent(int howMany) {
+  while (1 < Wire.available()) { // loop through all but the last
+    char c = Wire.read(); // receive byte as a character
+    Serial.print(c); 
+  }
+  x = Wire.read(); // receive byte as a character
+  Serial.print(x);         // print the character
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-
+  
 }
