@@ -26,5 +26,22 @@ void receiveEvent(int howMany) {
 }
 
 void loop() {
-  
+  switch(x){
+    case 1:
+      tmrpcm.play("inicio.wav");
+      delay(100);
+      break;
+    case 2: 
+      tmrpcm.play("waka.wav");
+      delay(500);
+      break;
+    case 3:
+      tmrpcm.play("muere.wav");
+      delay(100);
+      break;
+    case 4:
+      tmrpcm.play("inter.wav");
+      delay(100);
+      break;
+    }
 }
